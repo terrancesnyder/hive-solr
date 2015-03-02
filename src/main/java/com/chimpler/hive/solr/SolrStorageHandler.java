@@ -23,6 +23,7 @@ import org.apache.hadoop.mapred.OutputFormat;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.impl.HttpSolrServer;
 
+@SuppressWarnings("deprecation")
 public class SolrStorageHandler implements HiveStorageHandler {
 	private Configuration mConf = null;
 	
@@ -35,6 +36,7 @@ public class SolrStorageHandler implements HiveStorageHandler {
 		ConfigurationUtil.copySolrProperties(properties, jobProperties);
 	}
 
+	@SuppressWarnings("rawtypes")
 	@Override
 	public Class<? extends InputFormat> getInputFormatClass() {
 		return SolrInputFormat.class;
@@ -45,6 +47,7 @@ public class SolrStorageHandler implements HiveStorageHandler {
 		return new DummyMetaHook();
 	}
 
+	@SuppressWarnings("rawtypes")
 	@Override
 	public Class<? extends OutputFormat> getOutputFormatClass() {
 		return SolrOutputFormat.class;

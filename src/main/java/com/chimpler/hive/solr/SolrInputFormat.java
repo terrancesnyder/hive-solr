@@ -22,9 +22,6 @@ public class SolrInputFormat extends
   public static final String READ_COLUMN_IDS_CONF_STR = "hive.io.file.readcolumn.ids";
   public static final String READ_COLUMN_NAMES_CONF_STR = "hive.io.file.readcolumn.names";
   private static final String READ_COLUMN_IDS_CONF_STR_DEFAULT = "";
-  private static final String READ_ALL_COLUMNS = "hive.io.file.read.all.columns";
-  private static final boolean READ_ALL_COLUMNS_DEFAULT = true;
-			
   /**
    * Returns an array of column ids(start from zero) which is set in the given
    * parameter <tt>conf</tt>.

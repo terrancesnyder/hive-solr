@@ -25,6 +25,7 @@ import org.apache.hadoop.io.Text;
 import org.apache.hadoop.io.Writable;
 import org.apache.log4j.Logger;
 
+@SuppressWarnings("deprecation")
 public class SolrSerDe implements SerDe {
 	static final String HIVE_TYPE_DOUBLE = "double";
 	static final String HIVE_TYPE_FLOAT = "float";
