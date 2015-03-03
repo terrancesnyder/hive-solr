@@ -11,13 +11,16 @@ import org.apache.hadoop.hive.serde.Constants;
 import org.apache.hadoop.hive.serde2.SerDe;
 import org.apache.hadoop.hive.serde2.SerDeException;
 import org.apache.hadoop.hive.serde2.SerDeStats;
+import org.apache.hadoop.hive.serde2.objectinspector.ListObjectInspector;
 import org.apache.hadoop.hive.serde2.objectinspector.ObjectInspector;
 import org.apache.hadoop.hive.serde2.objectinspector.ObjectInspectorFactory;
+import org.apache.hadoop.hive.serde2.objectinspector.StandardListObjectInspector;
 import org.apache.hadoop.hive.serde2.objectinspector.StructField;
 import org.apache.hadoop.hive.serde2.objectinspector.StructObjectInspector;
 import org.apache.hadoop.hive.serde2.objectinspector.PrimitiveObjectInspector.PrimitiveCategory;
 import org.apache.hadoop.hive.serde2.objectinspector.primitive.AbstractPrimitiveObjectInspector;
 import org.apache.hadoop.hive.serde2.objectinspector.primitive.PrimitiveObjectInspectorFactory;
+import org.apache.hadoop.hive.serde2.typeinfo.ListTypeInfo;
 import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.MapWritable;
 import org.apache.hadoop.io.NullWritable;
@@ -34,6 +37,8 @@ public class SolrSerDe implements SerDe {
 	static final String HIVE_TYPE_TINYINT = "tinyint";
 	static final String HIVE_TYPE_SMALLINT = "smallint";
 	static final String HIVE_TYPE_INT = "int";
+	static final String HIVE_STRING_ARRAY = "array<string>";
+	static final String HIVE_INT_ARRAY = "array<int>";
 
 	private final MapWritable cachedWritable = new MapWritable();
 
@@ -70,40 +75,37 @@ public class SolrSerDe implements SerDe {
 		}
 		log.debug("column names in hive table: " + hiveColumnNameArray);
 		
-		String columnTypeProperty = tbl
-				.getProperty(Constants.LIST_COLUMN_TYPES);
-		// System.err.println("column types:" + columnTypeProperty);
+		String columnTypeProperty = tbl.getProperty(Constants.LIST_COLUMN_TYPES);
 		columnTypesArray = columnTypeProperty.split(":");
 		log.debug("column types in hive table: " + columnTypesArray);
 
-		final List<ObjectInspector> fieldOIs = new ArrayList<ObjectInspector>(
-				columnNamesArray.length);
+		final List<ObjectInspector> fieldOIs = new ArrayList<ObjectInspector>(columnNamesArray.length);
 		for (int i = 0; i < columnNamesArray.length; i++) {
 			if (HIVE_TYPE_INT.equalsIgnoreCase(columnTypesArray[i])) {
-				fieldOIs
-						.add(PrimitiveObjectInspectorFactory.javaIntObjectInspector);
+				fieldOIs.add(PrimitiveObjectInspectorFactory.javaIntObjectInspector);
 			} else if (SolrSerDe.HIVE_TYPE_SMALLINT.equalsIgnoreCase(columnTypesArray[i])) {
-				fieldOIs
-						.add(PrimitiveObjectInspectorFactory.javaShortObjectInspector);
+				fieldOIs.add(PrimitiveObjectInspectorFactory.javaShortObjectInspector);
 			} else if (SolrSerDe.HIVE_TYPE_TINYINT.equalsIgnoreCase(columnTypesArray[i])) {
-				fieldOIs
-						.add(PrimitiveObjectInspectorFactory.javaByteObjectInspector);
+				fieldOIs.add(PrimitiveObjectInspectorFactory.javaByteObjectInspector);
 			} else if (SolrSerDe.HIVE_TYPE_BIGINT.equalsIgnoreCase(columnTypesArray[i])) {
-				fieldOIs
-						.add(PrimitiveObjectInspectorFactory.javaLongObjectInspector);
+				fieldOIs.add(PrimitiveObjectInspectorFactory.javaLongObjectInspector);
 			} else if (SolrSerDe.HIVE_TYPE_BOOLEAN.equalsIgnoreCase(columnTypesArray[i])) {
-				fieldOIs
-						.add(PrimitiveObjectInspectorFactory.javaBooleanObjectInspector);
+				fieldOIs.add(PrimitiveObjectInspectorFactory.javaBooleanObjectInspector);
 			} else if (SolrSerDe.HIVE_TYPE_FLOAT.equalsIgnoreCase(columnTypesArray[i])) {
-				fieldOIs
-						.add(PrimitiveObjectInspectorFactory.javaFloatObjectInspector);
+				fieldOIs.add(PrimitiveObjectInspectorFactory.javaFloatObjectInspector);
 			} else if (SolrSerDe.HIVE_TYPE_DOUBLE.equalsIgnoreCase(columnTypesArray[i])) {
-				fieldOIs
-						.add(PrimitiveObjectInspectorFactory.javaDoubleObjectInspector);
+				fieldOIs.add(PrimitiveObjectInspectorFactory.javaDoubleObjectInspector);
+			} else if (SolrSerDe.HIVE_STRING_ARRAY.equalsIgnoreCase(columnTypesArray[i])) {
+				StandardListObjectInspector inspector = ObjectInspectorFactory.getStandardListObjectInspector(PrimitiveObjectInspectorFactory.javaStringObjectInspector);
+				ListObjectInspector listInspector=ObjectInspectorFactory.getStandardListObjectInspector(inspector);
+				fieldOIs.add(listInspector);		
+			} else if (SolrSerDe.HIVE_INT_ARRAY.equalsIgnoreCase(columnTypesArray[i])) {
+				StandardListObjectInspector inspector = ObjectInspectorFactory.getStandardListObjectInspector(PrimitiveObjectInspectorFactory.javaIntObjectInspector);
+				ListObjectInspector listInspector=ObjectInspectorFactory.getStandardListObjectInspector(inspector);
+				fieldOIs.add(listInspector);		
 			} else {
 				// treat as string
-				fieldOIs
-						.add(PrimitiveObjectInspectorFactory.javaStringObjectInspector);
+				fieldOIs.add(PrimitiveObjectInspectorFactory.javaStringObjectInspector);
 			}
 		}
 		objectInspector = ObjectInspectorFactory
