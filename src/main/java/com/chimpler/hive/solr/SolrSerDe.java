@@ -20,13 +20,11 @@ import org.apache.hadoop.hive.serde2.objectinspector.StructObjectInspector;
 import org.apache.hadoop.hive.serde2.objectinspector.PrimitiveObjectInspector.PrimitiveCategory;
 import org.apache.hadoop.hive.serde2.objectinspector.primitive.AbstractPrimitiveObjectInspector;
 import org.apache.hadoop.hive.serde2.objectinspector.primitive.PrimitiveObjectInspectorFactory;
-import org.apache.hadoop.hive.serde2.typeinfo.ListTypeInfo;
 import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.MapWritable;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.io.Writable;
-import org.apache.log4j.Logger;
 
 @SuppressWarnings("deprecation")
 public class SolrSerDe implements SerDe {
@@ -48,8 +46,6 @@ public class SolrSerDe implements SerDe {
 	String[] columnTypesArray;
 	private List<Object> row;
 	
-	Logger log = Logger.getLogger(SolrSerDe.class);
-
 	@Override
 	public void initialize(final Configuration conf, final Properties tbl)
 			throws SerDeException {
@@ -65,19 +61,15 @@ public class SolrSerDe implements SerDe {
 		columnNames = new ArrayList<String>(columnNamesArray.length);
 		columnNames.addAll(Arrays.asList(columnNamesArray));
 		
-		log.debug("column names in mongo collection: " + columnNames);
-		
 		String hiveColumnNameProperty = tbl.getProperty(Constants.LIST_COLUMNS);
 		List<String> hiveColumnNameArray = new ArrayList<String>();
 		
 		if (hiveColumnNameProperty != null && hiveColumnNameProperty.length() > 0) {
 			hiveColumnNameArray = Arrays.asList(hiveColumnNameProperty.split(","));
 		}
-		log.debug("column names in hive table: " + hiveColumnNameArray);
 		
 		String columnTypeProperty = tbl.getProperty(Constants.LIST_COLUMN_TYPES);
 		columnTypesArray = columnTypeProperty.split(":");
-		log.debug("column types in hive table: " + columnTypesArray);
 
 		final List<ObjectInspector> fieldOIs = new ArrayList<ObjectInspector>(columnNamesArray.length);
 		for (int i = 0; i < columnNamesArray.length; i++) {
