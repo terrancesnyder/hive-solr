@@ -40,7 +40,7 @@ public class SolrWriter implements RecordWriter {
 				continue;
 			}
 			// is this string in hives array format '[0,1,2,3]'
-			if (token.contains(",") && token.startsWith("[") && token.endsWith("]")) {
+			if (token.contains(",")) {
 				String[] items = token.replace("[", "").replace("]", "").replace("\"", "").replace("'", "").split(",");
 				for (String item : items) {
 					doc.addField(key, item.trim());

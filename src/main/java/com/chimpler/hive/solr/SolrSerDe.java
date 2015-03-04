@@ -11,10 +11,8 @@ import org.apache.hadoop.hive.serde.Constants;
 import org.apache.hadoop.hive.serde2.SerDe;
 import org.apache.hadoop.hive.serde2.SerDeException;
 import org.apache.hadoop.hive.serde2.SerDeStats;
-import org.apache.hadoop.hive.serde2.objectinspector.ListObjectInspector;
 import org.apache.hadoop.hive.serde2.objectinspector.ObjectInspector;
 import org.apache.hadoop.hive.serde2.objectinspector.ObjectInspectorFactory;
-import org.apache.hadoop.hive.serde2.objectinspector.StandardListObjectInspector;
 import org.apache.hadoop.hive.serde2.objectinspector.StructField;
 import org.apache.hadoop.hive.serde2.objectinspector.StructObjectInspector;
 import org.apache.hadoop.hive.serde2.objectinspector.PrimitiveObjectInspector.PrimitiveCategory;
@@ -35,8 +33,6 @@ public class SolrSerDe implements SerDe {
 	static final String HIVE_TYPE_TINYINT = "tinyint";
 	static final String HIVE_TYPE_SMALLINT = "smallint";
 	static final String HIVE_TYPE_INT = "int";
-	static final String HIVE_STRING_ARRAY = "array<string>";
-	static final String HIVE_INT_ARRAY = "array<int>";
 
 	private final MapWritable cachedWritable = new MapWritable();
 
@@ -87,14 +83,6 @@ public class SolrSerDe implements SerDe {
 				fieldOIs.add(PrimitiveObjectInspectorFactory.javaFloatObjectInspector);
 			} else if (SolrSerDe.HIVE_TYPE_DOUBLE.equalsIgnoreCase(columnTypesArray[i])) {
 				fieldOIs.add(PrimitiveObjectInspectorFactory.javaDoubleObjectInspector);
-			} else if (SolrSerDe.HIVE_STRING_ARRAY.equalsIgnoreCase(columnTypesArray[i])) {
-				StandardListObjectInspector inspector = ObjectInspectorFactory.getStandardListObjectInspector(PrimitiveObjectInspectorFactory.javaStringObjectInspector);
-				ListObjectInspector listInspector=ObjectInspectorFactory.getStandardListObjectInspector(inspector);
-				fieldOIs.add(listInspector);		
-			} else if (SolrSerDe.HIVE_INT_ARRAY.equalsIgnoreCase(columnTypesArray[i])) {
-				StandardListObjectInspector inspector = ObjectInspectorFactory.getStandardListObjectInspector(PrimitiveObjectInspectorFactory.javaIntObjectInspector);
-				ListObjectInspector listInspector=ObjectInspectorFactory.getStandardListObjectInspector(inspector);
-				fieldOIs.add(listInspector);		
 			} else {
 				// treat as string
 				fieldOIs.add(PrimitiveObjectInspectorFactory.javaStringObjectInspector);
