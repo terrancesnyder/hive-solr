@@ -11,6 +11,12 @@
 			<url>https://repository.apache.org/content/groups/public/</url>
 		</repository>
 	</repositories>
+	
+	<properties>
+	   <junit.version>4.12</junit.version>
+	   <fest.version>2.0M10</fest.version>
+	</properties>
+	
 	<build>
 		<pluginManagement>
 			<plugins>
@@ -79,6 +85,7 @@
 					<descriptorRefs>
 						<descriptorRef>jar-with-dependencies</descriptorRef>
 					</descriptorRefs>
+					<finalName>hive-solr-serde</finalName>
 				</configuration>
 				<executions>
 					<execution>
@@ -177,5 +184,19 @@
 			<version>1.2.1</version>
 			<scope>provided</scope>
 		</dependency>
+		
+        <!-- Test frameworks -->
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>${junit.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.easytesting</groupId>
+            <artifactId>fest-assert-core</artifactId>
+            <version>${fest.version}</version>
+        </dependency>
+        
 	</dependencies>
 </project>

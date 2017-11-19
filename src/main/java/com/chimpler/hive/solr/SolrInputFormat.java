@@ -55,8 +55,7 @@ public class SolrInputFormat extends
 
             String[] columns = ConfigurationUtil.getAllColumns(columnString);
             if (readColIDs.size() > columns.length) {
-                    throw new IOException(
-                                    "read column count larger than that in column mapping string!");
+                    throw new IOException("read column count larger than that in column mapping string!");
             }
 
             String[] cols;

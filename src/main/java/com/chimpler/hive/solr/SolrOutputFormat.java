@@ -16,8 +16,7 @@ import org.apache.hadoop.util.Progressable;
 
 import com.chimpler.hive.solr.ConfigurationUtil;
 
-public class SolrOutputFormat implements OutputFormat<NullWritable,Row>,
-HiveOutputFormat<NullWritable, Row>{
+public class SolrOutputFormat implements OutputFormat<NullWritable,Row>,HiveOutputFormat<NullWritable, Row>{
 
         @Override
         public RecordWriter getHiveRecordWriter(JobConf conf,
@@ -26,9 +25,7 @@ HiveOutputFormat<NullWritable, Row>{
                       boolean isCompressed,
                       Properties tableProperties,
                       Progressable progress) throws IOException {
-                return new SolrWriter(ConfigurationUtil.getUrl(conf),
-                					  ConfigurationUtil.getNumOutputBufferRows(conf));
-
+                return new SolrWriter(ConfigurationUtil.getUrl(conf), ConfigurationUtil.getNumOutputBufferRows(conf));
         }
 
         @Override

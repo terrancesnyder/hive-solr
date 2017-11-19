@@ -3,6 +3,7 @@ package com.chimpler.hive.solr;
 import java.io.IOException;
 import java.util.Map;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.hive.ql.exec.FileSinkOperator.RecordWriter;
 import org.apache.hadoop.io.MapWritable;
 import org.apache.hadoop.io.Writable;
@@ -34,20 +35,22 @@ public class SolrWriter implements RecordWriter {
 		SolrInputDocument doc = new SolrInputDocument();
 		for (final Map.Entry<Writable, Writable> entry : map.entrySet()) {
 			String key = entry.getKey().toString();
-			String token = getStringValue(entry.getValue());
+			String text = getStringValue(entry.getValue());
 			// skip null values
-			if (token == null) {
+			if (text == null) {
 				continue;
 			}
-			// is this string in hives array format '[0,1,2,3]'
-			if (token.contains(",")) {
-				String[] items = token.replace("[", "").replace("]", "").replace("\"", "").replace("'", "").split(",");
-				for (String item : items) {
-					doc.addField(key, item.trim());
-				}
+			// is this string is in a format we support '[0|1|2|3]'
+			if (text.contains("|") && text.startsWith("[") && text.endsWith("]")) {
+				String[] items = text.split("\\|");
+				for (String val : items) {
+                    if (StringUtils.isNotBlank(val)) {
+                        doc.addField(key, val);
+                    }
+                }
 			} else {
 				// single value field
-				doc.setField(key, token);
+				doc.setField(key, text);
 			}
 		}
 		table.save(doc);

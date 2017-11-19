@@ -11,18 +11,20 @@ import org.apache.hadoop.hive.serde.Constants;
 import org.apache.hadoop.hive.serde2.SerDe;
 import org.apache.hadoop.hive.serde2.SerDeException;
 import org.apache.hadoop.hive.serde2.SerDeStats;
+import org.apache.hadoop.hive.serde2.objectinspector.ListObjectInspector;
 import org.apache.hadoop.hive.serde2.objectinspector.ObjectInspector;
 import org.apache.hadoop.hive.serde2.objectinspector.ObjectInspectorFactory;
 import org.apache.hadoop.hive.serde2.objectinspector.StructField;
 import org.apache.hadoop.hive.serde2.objectinspector.StructObjectInspector;
-import org.apache.hadoop.hive.serde2.objectinspector.PrimitiveObjectInspector.PrimitiveCategory;
+import org.apache.hadoop.hive.serde2.objectinspector.StandardListObjectInspector;
 import org.apache.hadoop.hive.serde2.objectinspector.primitive.AbstractPrimitiveObjectInspector;
 import org.apache.hadoop.hive.serde2.objectinspector.primitive.PrimitiveObjectInspectorFactory;
-import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.MapWritable;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.io.Writable;
+
+import com.google.common.base.Joiner;
 
 @SuppressWarnings("deprecation")
 public class SolrSerDe implements SerDe {
@@ -33,6 +35,7 @@ public class SolrSerDe implements SerDe {
 	static final String HIVE_TYPE_TINYINT = "tinyint";
 	static final String HIVE_TYPE_SMALLINT = "smallint";
 	static final String HIVE_TYPE_INT = "int";
+	static final String HIVE_STRING_ARRAY = "array<string>";
 
 	private final MapWritable cachedWritable = new MapWritable();
 
@@ -43,16 +46,12 @@ public class SolrSerDe implements SerDe {
 	private List<Object> row;
 	
 	@Override
-	public void initialize(final Configuration conf, final Properties tbl)
-			throws SerDeException {
-		final String columnString = tbl
-				.getProperty(ConfigurationUtil.COLUMN_MAPPING);
+	public void initialize(final Configuration conf, final Properties tbl) throws SerDeException {
+		final String columnString = tbl.getProperty(ConfigurationUtil.COLUMN_MAPPING);
 		if (StringUtils.isBlank(columnString)) {
-			throw new SerDeException("No column mapping found, use "
-					+ ConfigurationUtil.COLUMN_MAPPING);
+			throw new SerDeException("No column mapping found, use "+ ConfigurationUtil.COLUMN_MAPPING);
 		}
-		final String[] columnNamesArray = ConfigurationUtil
-				.getAllColumns(columnString);
+		final String[] columnNamesArray = ConfigurationUtil.getAllColumns(columnString);
 		fieldCount = columnNamesArray.length;
 		columnNames = new ArrayList<String>(columnNamesArray.length);
 		columnNames.addAll(Arrays.asList(columnNamesArray));
@@ -83,21 +82,23 @@ public class SolrSerDe implements SerDe {
 				fieldOIs.add(PrimitiveObjectInspectorFactory.javaFloatObjectInspector);
 			} else if (SolrSerDe.HIVE_TYPE_DOUBLE.equalsIgnoreCase(columnTypesArray[i])) {
 				fieldOIs.add(PrimitiveObjectInspectorFactory.javaDoubleObjectInspector);
-			} else {
+			} else if (SolrSerDe.HIVE_STRING_ARRAY.equalsIgnoreCase(columnTypesArray[i])) {
+			    StandardListObjectInspector inspector = ObjectInspectorFactory.getStandardListObjectInspector(PrimitiveObjectInspectorFactory.javaStringObjectInspector);
+			    ListObjectInspector listInspector=ObjectInspectorFactory.getStandardListObjectInspector(inspector);
+			    fieldOIs.add(listInspector);        
+            } else {
 				// treat as string
 				fieldOIs.add(PrimitiveObjectInspectorFactory.javaStringObjectInspector);
 			}
 		}
-		objectInspector = ObjectInspectorFactory
-				.getStandardStructObjectInspector(hiveColumnNameArray, fieldOIs);
+		objectInspector = ObjectInspectorFactory.getStandardStructObjectInspector(hiveColumnNameArray, fieldOIs);
 		row = new ArrayList<Object>(columnNamesArray.length);
 	}
 
 	@Override
 	public Object deserialize(Writable wr) throws SerDeException {
 		if (!(wr instanceof MapWritable)) {
-			throw new SerDeException("Expected MapWritable, received "
-					+ wr.getClass().getName());
+			throw new SerDeException("Expected MapWritable, received " + wr.getClass().getName());
 		}
 
 		final MapWritable input = (MapWritable) wr;
@@ -124,7 +125,9 @@ public class SolrSerDe implements SerDe {
 					row.add(Double.valueOf(value.toString()).floatValue());
 				} else if (SolrSerDe.HIVE_TYPE_DOUBLE.equalsIgnoreCase(columnTypesArray[i])) {
 					row.add(Double.valueOf(value.toString()));
-				} else {
+				} else if (SolrSerDe.HIVE_STRING_ARRAY.equalsIgnoreCase(columnTypesArray[i])) {
+                    row.add(value.toString());
+                } else {
 					row.add(value.toString());
 				}
 			} else {
@@ -146,39 +149,37 @@ public class SolrSerDe implements SerDe {
 	}
 
 	@Override
-	public Writable serialize(final Object obj, final ObjectInspector inspector)
-			throws SerDeException {
+	public Writable serialize(final Object obj, final ObjectInspector inspector) throws SerDeException {
 		final StructObjectInspector structInspector = (StructObjectInspector) inspector;
-		final List<? extends StructField> fields = structInspector
-				.getAllStructFieldRefs();
+		final List<? extends StructField> fields = structInspector.getAllStructFieldRefs();
 		if (fields.size() != columnNames.size()) {
-			throw new SerDeException(String.format(
-					"Required %d columns, received %d.", columnNames.size(),
-					fields.size()));
+			throw new SerDeException(String.format("Required %d columns, received %d.", columnNames.size(),fields.size()));
 		}
 		
 		cachedWritable.clear();
 		for (int c = 0; c < fieldCount; c++) {
 			StructField structField = fields.get(c);
 			if (structField != null) {
-				final Object field = structInspector.getStructFieldData(obj,
-						fields.get(c));
+				final Object field = structInspector.getStructFieldData(obj, fields.get(c));
 				
-				//TODO:currently only support hive primitive type
-				final AbstractPrimitiveObjectInspector fieldOI = (AbstractPrimitiveObjectInspector)fields.get(c)
-						.getFieldObjectInspector();
-
-				Writable value = (Writable)fieldOI.getPrimitiveWritableObject(field);
+				StructField f = fields.get(c);
+				ObjectInspector fo = f.getFieldObjectInspector();
+				Writable value = null;
+				
+				if (fo instanceof AbstractPrimitiveObjectInspector) {
+	                final AbstractPrimitiveObjectInspector fieldOI = (AbstractPrimitiveObjectInspector)fo;
+				    value = (Writable)fieldOI.getPrimitiveWritableObject(field);
+				} else if (fo instanceof StandardListObjectInspector) {
+				    final StandardListObjectInspector fieldOI = (StandardListObjectInspector)fo;
+				    value = new Text(Joiner.on("|").join(fieldOI.getList(field)));
+				} else {
+				    throw new RuntimeException("Unsupported column type of " + fo.getTypeName());
+				}
 				
 				if (value == null) {
-					if(PrimitiveCategory.STRING.equals(fieldOI.getPrimitiveCategory())){
-						value = NullWritable.get();	
-						//value = new Text("");
-					}else{
-						//TODO: now all treat as number
-						value = new IntWritable(0);
-					}
+				    value = NullWritable.get();
 				}
+				
 				cachedWritable.put(new Text(columnNames.get(c)), value);
 			}
 		}

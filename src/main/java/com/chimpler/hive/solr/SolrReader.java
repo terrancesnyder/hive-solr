@@ -50,8 +50,7 @@ public class SolrReader implements RecordReader<LongWritable, MapWritable> {
         }
 
         @Override
-        public boolean next(LongWritable keyHolder, MapWritable valueHolder)
-                    throws IOException {
+        public boolean next(LongWritable keyHolder, MapWritable valueHolder) throws IOException {
         	SolrDocument doc = cursor.nextDocument();
         	if (doc == null) {
         		return false;
