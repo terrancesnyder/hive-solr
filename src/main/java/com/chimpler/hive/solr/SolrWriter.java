@@ -40,14 +40,17 @@ public class SolrWriter implements RecordWriter {
 			if (text == null) {
 				continue;
 			}
+			if (text.contains("null")) {
+				continue;
+			}
 			// is this string is in a format we support '[0|1|2|3]'
-			if (text.contains("|") && text.startsWith("[") && text.endsWith("]")) {
-				String[] items = text.split("\\|");
-				for (String val : items) {
-                    if (StringUtils.isNotBlank(val)) {
-                        doc.addField(key, val);
-                    }
-                }
+			if (text.contains("|")) {
+		           String[] items = text.split("\\|");
+	                   for (String val : items) {
+                              if (StringUtils.isNotBlank(val)) {
+                                doc.addField(key, val);
+                              }
+                           }
 			} else {
 				// single value field
 				doc.setField(key, text);
