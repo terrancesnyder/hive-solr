@@ -5,7 +5,7 @@ import java.util.List;
 import java.util.ArrayList;
 
 import org.apache.commons.lang.StringUtils;
-import org.apache.hadoop.hive.ql.exec.Utilities;
+import org.apache.hadoop.hive.ql.exec.SerializationUtilities;
 import org.apache.hadoop.hive.ql.io.HiveInputFormat;
 import org.apache.hadoop.hive.ql.plan.ExprNodeDesc;
 import org.apache.hadoop.hive.ql.plan.TableScanDesc;
@@ -22,8 +22,6 @@ public class SolrInputFormat extends
   public static final String READ_COLUMN_IDS_CONF_STR = "hive.io.file.readcolumn.ids";
   public static final String READ_COLUMN_NAMES_CONF_STR = "hive.io.file.readcolumn.names";
   private static final String READ_COLUMN_IDS_CONF_STR_DEFAULT = "";
-  private static final String READ_ALL_COLUMNS = "hive.io.file.read.all.columns";
-  private static final boolean READ_ALL_COLUMNS_DEFAULT = true;
 			
   /**
    * Returns an array of column ids(start from zero) which is set in the given
@@ -75,8 +73,10 @@ public class SolrInputFormat extends
                     conf.get(TableScanDesc.FILTER_EXPR_CONF_STR);
 
                   if (filterExprSerialized != null){
-                      ExprNodeDesc filterExpr =
-                          Utilities.deserializeExpression(filterExprSerialized, conf);
+                      
+                      
+                      
+                      ExprNodeDesc filterExpr = SerializationUtilities.deserializeExpression(filterExprSerialized);
                       /*String columnNameProperty = conf.get(
                                   org.apache.hadoop.hive.serde.Constants.LIST_COLUMNS);
                       System.err.println("======list columns:" + columnNameProperty);*/

@@ -8,7 +8,7 @@ import java.util.Properties;
 import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hive.serde.Constants;
-import org.apache.hadoop.hive.serde2.SerDe;
+import org.apache.hadoop.hive.serde2.AbstractSerDe;
 import org.apache.hadoop.hive.serde2.SerDeException;
 import org.apache.hadoop.hive.serde2.SerDeStats;
 import org.apache.hadoop.hive.serde2.objectinspector.ObjectInspector;
@@ -25,7 +25,8 @@ import org.apache.hadoop.io.Text;
 import org.apache.hadoop.io.Writable;
 import org.apache.log4j.Logger;
 
-public class SolrSerDe implements SerDe {
+public class SolrSerDe extends AbstractSerDe {
+    
 	static final String HIVE_TYPE_DOUBLE = "double";
 	static final String HIVE_TYPE_FLOAT = "float";
 	static final String HIVE_TYPE_BOOLEAN = "boolean";

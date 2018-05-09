@@ -11,17 +11,15 @@ import org.apache.hadoop.mapred.RecordReader;
 import org.apache.solr.common.SolrDocument;
 
 public class SolrReader implements RecordReader<LongWritable, MapWritable> {
-        private final static int BATCH_SIZE = 10000;
+
         private SolrSplit split;
         private SolrTableCursor cursor;
         private int pos;
-        private int numBufferRows;
         
         String[] readColumns;
 
         public SolrReader(String url, SolrSplit split, String[] readColumns, int numInputBufferRows) throws IOException {
             this.split = split;
-            this.numBufferRows = numBufferRows;
 
             this.readColumns = readColumns;
             SolrTable table = new SolrTable(url);
